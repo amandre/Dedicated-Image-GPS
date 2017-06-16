@@ -31,7 +31,7 @@ class MainApp(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("SignUpPage")
+        self.show_frame("SignInPage")
 
     def show_frame(self, page_name):
         '''Show a frame for the given page name'''
@@ -45,10 +45,12 @@ class SignInPage(tk.Frame):
         self.controller = controller
         self.L1 = tk.Label(self, text="User Name")
         self.L1.pack(anchor=tk.W, padx=(50, 0))
-        self.E1 = tk.Entry(self, bd =5)
+        self.E1 = tk.Entry(self)
         self.E1.pack(anchor=tk.E, padx=(0, 50))
+        imageBtn = tk.Button(self, text="Choose an image to log in", command=SignUpPage.getimage)
+        imageBtn.pack(pady=(10,0))
         submitBtn = tk.Button(self, text="Sign In", command=self.processLogIn)
-        submitBtn.pack(side=tk.BOTTOM, pady=(50, 50))
+        submitBtn.pack(side=tk.BOTTOM, pady=(0, 50))
 
     def processLogIn(self):
         username= self.E1.get()
@@ -64,18 +66,17 @@ class SignInPage(tk.Frame):
 
 
 class SignUpPage(tk.Frame):
-    choice = 0
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.L1 = tk.Label(self, text="User Name")
         self.L1.pack(anchor=tk.W, padx=(50, 0))
-        self.E1 = tk.Entry(self, bd =5)
-        self.E1.pack(padx=(0, 50))
-        self.coords = []
-        #TODO 2 - some minor GUI enhancements
+        self.E1 = tk.Entry(self)
+        self.E1.pack(anchor=tk.E, padx=(0, 50))
         imageBtn = tk.Button(self, text="Choose an image to create your password", command=self.getimage)
         imageBtn.pack(pady=(10,0))
+        #TODO 2 - some minor GUI enhancements
         submitBtn = tk.Button(self, text="Sign Up", command=self.processRegistration)
         submitBtn.pack(side=tk.BOTTOM, pady=(0, 50))
 
@@ -104,6 +105,7 @@ class SignUpPage(tk.Frame):
         })
         tkMessageBox.showinfo("USER "+username+" REGISTERED", "You have successfully signed up.\nNow try to log in.")
 
+    #@classmethod
     def displayimages(self, path):
         self.win = tk.Toplevel()
         self.win.geometry("440x480")
@@ -134,6 +136,7 @@ class SignUpPage(tk.Frame):
         sendCoords = tk.Button(fr, text="CREATE ACCOUNT", command=self.submitPasswd)
         sendCoords.grid()
 
+    @classmethod
     def crop(self, path, inputval, N, directory):
         im = Image.open(path+inputval)
         w, h = im.size
@@ -171,6 +174,7 @@ class SignUpPage(tk.Frame):
         else:
             tkMessageBox.showinfo("NO USERNAME OR EMPTY IMAGE", "Please try again.\nPut your desired username and the image to create password")
 
+    @classmethod
     def getimage(self):
         self.filename = askopenfilename()  # show an "Open" dialog box and return the path to the selected file
 
@@ -185,8 +189,8 @@ if __name__ == "__main__":
     menubar = tk.Menu(app)
     filemenu = tk.Menu(menubar, tearoff=0)
     # TODO - fix frames for filemenu
-    filemenu.add_command(label="Sign Up", command=lambda: app.controller.show_frame("SignUpPage"))
-    filemenu.add_command(label="Sign In", command=lambda: app.controller.show_frame("SignInPage"))
+    filemenu.add_command(label="Sign Up", command=lambda: app.show_frame("SignUpPage"))
+    filemenu.add_command(label="Sign In", command=lambda: app.show_frame("SignInPage"))
     filemenu.add_separator()
     filemenu.add_command(label="Exit", command=app.quit)
     menubar.add_cascade(label="File", menu=filemenu)
