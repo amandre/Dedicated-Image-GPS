@@ -2,10 +2,11 @@
 import Tkinter as tk
 from PIL import Image, ImageTk
 from tkFileDialog import askopenfilename
-import urllib2, json, re, pymongo, os, tkMessageBox, numpy
+import re, pymongo, os, tkMessageBox, numpy
 
 client = pymongo.MongoClient('mongodb://admin:password@ds127802.mlab.com:27802/gps_base')
 db = client.gps_base
+
 
 def about():
     win = tk.Toplevel(app)
@@ -34,7 +35,6 @@ class MainApp(tk.Tk):
         self.show_frame("SignInPage")
 
     def show_frame(self, page_name):
-        '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -89,7 +89,6 @@ class SignInPage(tk.Frame):
                     os.makedirs(path+directory)
                 except WindowsError:
                     pass
-                #print str(i)+" "+str(j)
                 box = (j, i, j+desiredw, i+desiredh)
                 o = im.crop(box)
                 o.save(path+directory+"/IMG-"+str(k)+".png", "PNG")
@@ -110,7 +109,6 @@ class SignInPage(tk.Frame):
                 square = tk.Label(self.win, image=img)
                 square.image = img
                 square.grid(row=row, column=col)
-                #TODO 3 - sort elements in the array
                 square.bind('<Button-1>', self.toggleonclick)
         fr = tk.Frame(self.win)
         fr.grid(columnspan=N)
@@ -123,7 +121,7 @@ class SignInPage(tk.Frame):
         grid_info = caller.grid_info()
         row = grid_info["row"]
         col = grid_info["column"]
-        if caller.cget("borderwidth")==2:
+        if caller.cget("borderwidth") == 2:
             self.coords.remove([row, col])
             caller.config(borderwidth=0)
         else:
@@ -141,7 +139,6 @@ class SignUpPage(tk.Frame):
         self.coords = []
         imageBtn = tk.Button(self, text="Choose an image to create your password", command=self.getimage)
         imageBtn.pack(pady=(10, 0))
-        #TODO 2 - some minor GUI enhancements
         submitBtn = tk.Button(self, text="Sign Up", command=self.processRegistration)
         submitBtn.pack(side=tk.BOTTOM, pady=(0, 50))
 
@@ -152,7 +149,7 @@ class SignUpPage(tk.Frame):
         grid_info = caller.grid_info()
         row = grid_info["row"]
         col = grid_info["column"]
-        if caller.cget("borderwidth")==2:
+        if caller.cget("borderwidth") == 2:
             self.coords.remove([row, col])
             caller.config(borderwidth=0)
         else:
@@ -160,15 +157,17 @@ class SignUpPage(tk.Frame):
             caller.config(borderwidth=2, relief="solid")
 
     def submitPasswd(self):
-        self.win.destroy()
-        username = self.E1.get()
-        db.credentials.insert_one({
-            "username": username,
-            "coords": self.coords
-        })
-        tkMessageBox.showinfo("USER "+username+" REGISTERED", "You have successfully signed up.\nNow try to log in.")
+        if len(self.coords)>=8:
+            username = self.E1.get()
+            self.win.destroy()
+            db.credentials.insert_one({
+                "username": username,
+                "coords": self.coords
+            })
+            tkMessageBox.showinfo("USER "+username+" REGISTERED", "You have successfully signed up.\nNow try to log in.")
+        else:
+            tkMessageBox.showinfo("PASSWORD TOO SHORT", "Your sequence is too short.\nPlease select at least 8 images")
 
-    #@classmethod
     def displayimages(self, path):
         self.win = tk.Toplevel()
         self.win.geometry("440x480")
@@ -179,9 +178,6 @@ class SignUpPage(tk.Frame):
         N = int(numpy.sqrt(len(imagesList)))
         if N*N==len(imagesList):
             imagesArray= numpy.reshape(imagesList, (N, N))
-        #TODO 1 - add ELSE clause for non NxN arrays
-        #else:
-            # ...
         for row in range(0, len(imagesArray[0])):
             for col in range(0, len(imagesArray[1])):
                 rec = imagesArray[row, col]
@@ -189,7 +185,6 @@ class SignUpPage(tk.Frame):
                 square = tk.Label(self.win, image=img)
                 square.image = img
                 square.grid(row=row, column=col)
-                #TODO 3 - sort elements in the array
                 square.bind('<Button-1>', self.toggleonclick)
         fr = tk.Frame(self.win)
         fr.grid(columnspan=N)
@@ -208,34 +203,26 @@ class SignUpPage(tk.Frame):
                     os.makedirs(path+directory)
                 except WindowsError:
                     pass
-                #print str(i)+" "+str(j)
                 box = (j, i, j+desiredw, i+desiredh)
                 o = im.crop(box)
                 o.save(path+directory+"/IMG-"+str(k)+".png", "PNG")
                 k += 1
-        #TODO 1 contd - or set amount of cells in the image array
 
     def processRegistration(self):
         try:
             if self.filename and self.E1.get():
                 username = self.E1.get()
-                #h = 150
-                #w = 150
                 N = 9
                 filestr = re.findall("[\-\_\w\d]*?\.[jpg|png|jpeg|bmp]+", self.filename)
                 filestr = ''.join(filestr)
                 path = self.filename.replace(filestr, "")
-                #self.crop(path, filestr, h, w, username)
                 self.crop(path, filestr, N, username)
                 self.displayimages(path+username)
         except AttributeError:
             tkMessageBox.showinfo("NO IMAGE PROVIDED", "Please try again, at least 1 image should be chosen")
-        else:
-            tkMessageBox.showinfo("NO USERNAME OR EMPTY IMAGE", "Please try again.\nPut your desired username and the image to create password")
 
-    #@classmethod
     def getimage(self):
-        self.filename = askopenfilename()  # show an "Open" dialog box and return the path to the selected file
+        self.filename = askopenfilename()
 
 
 if __name__ == "__main__":
@@ -247,7 +234,6 @@ if __name__ == "__main__":
 
     menubar = tk.Menu(app)
     filemenu = tk.Menu(menubar, tearoff=0)
-    # TODO - fix frames for filemenu
     filemenu.add_command(label="Sign Up", command=lambda: app.show_frame("SignUpPage"))
     filemenu.add_command(label="Sign In", command=lambda: app.show_frame("SignInPage"))
     filemenu.add_separator()
