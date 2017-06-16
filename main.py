@@ -20,7 +20,7 @@ def about():
 class MainApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        header = tk.Label(self, text="Implementation of CD-GPS Scheme")
+        header = tk.Label(self, text="CD-GPS Scheme based on own image file")
         header.pack(padx=20,pady=20)
         container = tk.Frame(self)
         container.pack()
@@ -54,9 +54,8 @@ class SignInPage(tk.Frame):
         username= self.E1.get()
         userExists = db.credentials.find_one({"username": username})
         if userExists:
-
-            usercoords = userExists['coords']
-                #if re.match()
+            #usercoords = userExists['coords']
+            #if re.match...
             logInSuccessful=1
         if logInSuccessful:
             tkMessageBox.showinfo("USER "+username+" LOGGED IN", "You have been successfully signed in")
@@ -83,12 +82,9 @@ class SignUpPage(tk.Frame):
     def toggleonclick(self,event):
         event.widget.focus_set()
         caller = event.widget
-        #print caller.grid_location(event.x,event.y)
         grid_info = caller.grid_info()
         row = grid_info["row"]
         col = grid_info["column"]
-        #print caller.cget("borderwidth")
-        #print(grid_info["row"], "column:", grid_info["column"])
         if caller.cget("borderwidth")==2:
             self.coords.remove([row, col])
             caller.config(borderwidth=0)
@@ -98,20 +94,25 @@ class SignUpPage(tk.Frame):
         #print self.coords
 
     def submitPasswd(self):
-        self.choice = 1
-        print 'klik!'
-        return self.choice
+        #print self.choice
+        #print self.coords
+        self.win.destroy()
+        username = self.E1.get()
+        db.credentials.insert_one({
+            "username": username,
+            "coords": self.coords
+        })
+        tkMessageBox.showinfo("USER "+username+" REGISTERED", "You have successfully signed up.\nNow try to log in.")
 
     def displayimages(self, path):
-        win = tk.Toplevel()
-        win.geometry("440x480")
-        win.resizable(width=False, height=False)
-        win.title("Coordinates selection")
+        self.win = tk.Toplevel()
+        self.win.geometry("440x480")
+        self.win.resizable(width=False, height=False)
+        self.win.title("Coordinates selection")
 
-        #txt = "Please type your password scheme (at least 8 images)"
-        #L = tk.Label(win, text=txt)
+        #L = tk.Label(self.win, text=txt)
         #L.pack(side=tk.TOP,pady=(20,20))
-        tkMessageBox.showinfo("SELECT IMAGES", "Please type your password scheme (at least 8 images)\nYou need to remember the sequence of selected images\nUnselected images will be excluded from the password sequence")
+        tkMessageBox.showinfo("SELECT IMAGES", "Please type your password scheme\nYou need to remember the sequence of selected images\nUnselected images will be excluded from the password sequence")
         imagesList = [f for f in os.listdir(path)]
         N = int(numpy.sqrt(len(imagesList)))
         if N*N==len(imagesList):
@@ -123,46 +124,15 @@ class SignUpPage(tk.Frame):
             for col in range(0, len(imagesArray[1])):
                 rec = imagesArray[row, col]
                 img = ImageTk.PhotoImage(Image.open(path+"/"+rec).resize((40, 40)))
-                square = tk.Label(win, image=img)
+                square = tk.Label(self.win, image=img)
                 square.image = img
                 square.grid(row=row, column=col)
                 #TODO 3 - sort elements in the array
                 square.bind('<Button-1>', self.toggleonclick)
-        fr = tk.Frame(win)
+        fr = tk.Frame(self.win)
         fr.grid(columnspan=N)
         sendCoords = tk.Button(fr, text="CREATE ACCOUNT", command=self.submitPasswd)
         sendCoords.grid()
-        print sendCoords
-        print self.coords
-        if self.choice:
-            #print 'in IF clause'
-            print self.choice
-            print self.coords
-            win.destroy()
-            username = self.E1.get()
-            db.credentials.insert_one({
-                "username": username,
-                "coords": self.coords
-            })
-            tkMessageBox.showinfo("USER "+username+" REGISTERED", "You have successfully signed up.\nNow try to log in.")
-        #else:
-           #print 'Make choice'
-
-    #def crop(self, path, inputval, height, width, directory):
-    #    im = Image.open(path+inputval)
-    #    imgwidth, imgheight = im.size
-    #    k=1
-    #    for i in range(0, imgheight, height):
-    #        for j in range(0, imgwidth, width):
-    #            try:
-    #                os.makedirs(path+directory)
-    #            except WindowsError:
-    #                pass
-    #           #print str(i)+" "+str(j)
-    #            box = (j, i, j+width, i+height)
-    #            o = im.crop(box)
-    #            o.save(path+directory+"/IMG-"+str(k)+".png", "PNG")
-    #            k += 1
 
     def crop(self, path, inputval, N, directory):
         im = Image.open(path+inputval)
@@ -207,7 +177,7 @@ class SignUpPage(tk.Frame):
 
 if __name__ == "__main__":
     app = MainApp()
-    app.title("CD-GPS Scheme")
+    app.title("Own Image GPS Scheme")
     app.tk.call('encoding', 'system', 'utf-8')
     app.geometry('{}x{}'.format(300, 200))
     app.resizable(width=False, height=False)
