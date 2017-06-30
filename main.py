@@ -1,3 +1,4 @@
+#Copyright Andrzej Amghar 2017
 #!/usr/bin/python
 import Tkinter as tk
 from PIL import Image, ImageTk
@@ -7,13 +8,12 @@ import re, pymongo, os, tkMessageBox, numpy
 client = pymongo.MongoClient('mongodb://admin:password@ds127802.mlab.com:27802/gps_base')
 db = client.gps_base
 
-
 def about():
     win = tk.Toplevel(app)
     win.geometry('200x70')
     win.resizable(width=False, height=False)
     win.title("About")
-    txt = "Version: 1.0"
+    txt = "Version: 1.0\nAuthor: Andrzej Amghar"
     L = tk.Label(win, text=txt)
     L.pack(padx=20, pady=20)
 
@@ -21,7 +21,7 @@ def about():
 class MainApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        header = tk.Label(self, text="CD-GPS Scheme based on own image file")
+        header = tk.Label(self, text="Dedicated Image GPS")
         header.pack(padx=20,pady=20)
         container = tk.Frame(self)
         container.pack()
@@ -35,6 +35,7 @@ class MainApp(tk.Tk):
         self.show_frame("SignInPage")
 
     def show_frame(self, page_name):
+        '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -89,6 +90,7 @@ class SignInPage(tk.Frame):
                     os.makedirs(path+directory)
                 except WindowsError:
                     pass
+                #print str(i)+" "+str(j)
                 box = (j, i, j+desiredw, i+desiredh)
                 o = im.crop(box)
                 o.save(path+directory+"/IMG-"+str(k)+".png", "PNG")
@@ -203,6 +205,7 @@ class SignUpPage(tk.Frame):
                     os.makedirs(path+directory)
                 except WindowsError:
                     pass
+                #print str(i)+" "+str(j)
                 box = (j, i, j+desiredw, i+desiredh)
                 o = im.crop(box)
                 o.save(path+directory+"/IMG-"+str(k)+".png", "PNG")
@@ -212,22 +215,28 @@ class SignUpPage(tk.Frame):
         try:
             if self.filename and self.E1.get():
                 username = self.E1.get()
+                #h = 150
+                #w = 150
                 N = 9
                 filestr = re.findall("[\-\_\w\d]*?\.[jpg|png|jpeg|bmp]+", self.filename)
                 filestr = ''.join(filestr)
                 path = self.filename.replace(filestr, "")
+                #self.crop(path, filestr, h, w, username)
                 self.crop(path, filestr, N, username)
                 self.displayimages(path+username)
         except AttributeError:
             tkMessageBox.showinfo("NO IMAGE PROVIDED", "Please try again, at least 1 image should be chosen")
+        #else:
+        #    tkMessageBox.showinfo("NO USERNAME OR EMPTY IMAGE", "Please try again.\nPut your desired username and the image to create password")
 
+    #@classmethod
     def getimage(self):
-        self.filename = askopenfilename()
+        self.filename = askopenfilename()  # show an "Open" dialog box and return the path to the selected file
 
 
 if __name__ == "__main__":
     app = MainApp()
-    app.title("Own Image GPS Scheme")
+    app.title("Dedicated Image GPS")
     app.tk.call('encoding', 'system', 'utf-8')
     app.geometry('{}x{}'.format(300, 200))
     app.resizable(width=False, height=False)
